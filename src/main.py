@@ -21,12 +21,18 @@ from peak_detection import (
 
 from export import (
     export_background_result,
+    export_peak_fit,
+    export_fit_curve_df,
     save_background_plots,
     export_peak_list,
     save_fit_plots,
     save_peak_components_plot,
+    save_area_distribution_plot,
     export_peak_components,
-    export_peak_report
+    export_peak_report,
+    make_raw_background_df,
+    make_fit_curve_df,
+    make_peak_components_df
 )
 
 from data_loader import load_giwaxs
@@ -231,14 +237,40 @@ def main():
         f"{reduced_chi_square:.2f}"
     )
 
-    fit_df.to_excel(
-        "../output/Peak_Fit.xlsx",
-        index=False
+    export_peak_fit(
+        fit_df
+    )
+
+    raw_bg_df = make_raw_background_df(
+        q,
+        raw,
+        bg,
+        corrected
+    )
+
+    fit_curve_df = make_fit_curve_df(
+        q,
+        corrected,
+        fit_curve,
+        residual
+    )
+
+    component_df = make_peak_components_df(
+        q,
+        corrected,
+        fit_curve,
+        popt
     )
 
     export_peak_report(
 
         fit_df,
+
+        component_df,
+
+        fit_curve_df,
+
+        raw_bg_df,
 
         r_squared,
 
@@ -246,23 +278,10 @@ def main():
 
         reduced_chi_square
 
-    )   
+    )
 
-    fit_curve_df = pd.DataFrame({
-
-    "Q": q,
-
-    "Corrected": corrected,
-
-    "Fit": fit_curve,
-
-    "Residual": residual
-
-    })
-
-    fit_curve_df.to_excel(
-        "../output/Fit_Curve_Residual.xlsx",
-        index=False
+    export_fit_curve_df(
+        fit_curve_df
     )
 
     save_fit_plots(
@@ -280,10 +299,11 @@ def main():
     )
 
     export_peak_components(
-        q,
-        corrected,
-        fit_curve,
-        popt
+        component_df
+    )
+
+    save_area_distribution_plot(
+        fit_df
     )
 
     print()
@@ -302,7 +322,3 @@ def main():
     )
 
     print()
-
-
-if __name__ == "__main__":
-    main()

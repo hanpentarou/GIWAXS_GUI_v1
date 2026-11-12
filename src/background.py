@@ -7,6 +7,8 @@ Default:
     SNIP + Spline
 """
 
+import numpy as np
+
 from pybaselines import Baseline
 from scipy.interpolate import UnivariateSpline
 
@@ -47,6 +49,8 @@ def snip_spline_background(
 
     background = spline(q)
 
+
+
     return background
 
 
@@ -54,7 +58,7 @@ def subtract_background(
     q,
     intensity,
     window=40,
-    smooth_scale=1e5
+    smooth_scale=5e4
 ):
 
     bg = snip_spline_background(

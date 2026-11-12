@@ -1,4 +1,7 @@
 
+from PIL import Image
+from PIL import ImageTk
+
 import os
 
 from analysis_engine import (
@@ -27,12 +30,30 @@ class GIWAXSGUI:
         )
 
         self.root.geometry(
-            "600x300"
+            "1200x800"
         )
 
         self.filename = ""
 
         self.create_widgets()
+
+        self.result_text = tk.Text(
+            self.root,
+            height=8,
+            width=60
+        )
+
+        self.result_text.pack(
+            pady=10
+        )
+
+        self.image_label = tk.Label(
+            self.root
+        )
+
+        self.image_label.pack(
+            pady=10
+        )
 
     def create_widgets(self):
 
@@ -107,17 +128,31 @@ class GIWAXSGUI:
 
             result = run_analysis(
                 self.filename
-)
+            )
 
-            messagebox.showinfo(
+            self.result_text.delete(
+                "1.0",
+                tk.END
+            )
 
-                "Analysis Complete",
+            self.result_text.insert(
 
-                f"R² = {result['r2']:.6f}\n"
-                f"Chi² = {result['chi2']:.2f}\n"
-                f"Reduced Chi² = {result['reduced_chi2']:.2f}"
+                tk.END,
+
+                "Analysis Summary\n"
+                "====================\n\n"
+
+                f"Detected Peaks : {result['num_peaks']}\n\n"
+
+                f"R² : {result['r2']:.6f}\n"
+
+                f"Chi² : {result['chi2']:.2f}\n"
+
+                f"Reduced Chi² : {result['reduced_chi2']:.2f}\n"
 
             )
+
+            self.display_fit_plot()
 
         except Exception as e:
 
@@ -146,6 +181,15 @@ class GIWAXSGUI:
 
         try:
 
+            if not os.path.exists(output_path):
+
+                messagebox.showerror(
+                    "Error",
+                    f"Output folder not found:\n{output_path}"
+                )
+
+                return
+
             os.startfile(
                 output_path
             )
@@ -156,6 +200,30 @@ class GIWAXSGUI:
                 "Error",
                 str(e)
             )
+
+    def display_fit_plot(self):
+
+        try:
+
+            image = Image.open(
+                "../output/Peak_Fit.png"
+            )
+
+            image.thumbnail(
+                (900, 500)
+            )
+
+            self.photo = ImageTk.PhotoImage(
+                image
+            )
+
+            self.image_label.config(
+                image=self.photo
+            )
+
+        except Exception as e:
+
+            print(e)
 
 
 root = tk.Tk()

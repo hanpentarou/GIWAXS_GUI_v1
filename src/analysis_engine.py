@@ -311,7 +311,9 @@ def run_analysis(filename):
 
         "chi2": chi_square,
 
-        "reduced_chi2": reduced_chi_square
+        "reduced_chi2": reduced_chi_square,
+
+        "num_peaks": len(fit_df)
 
     }
 

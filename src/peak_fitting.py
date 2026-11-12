@@ -70,8 +70,10 @@ def multi_pseudo_voigt(
 def fit_peaks(
     q,
     corrected,
-    peak_df
+    peak_df,
+    error
 ):
+    
     p0 = []
     lower_bounds = []
     upper_bounds = []
@@ -116,15 +118,31 @@ def fit_peaks(
             1.0           # eta
         ])
 
+    safe_error = np.where(
+        error > 0,
+        error,
+        np.nanmedian(error)
+    )
+
     popt, pcov = curve_fit(
+
         multi_pseudo_voigt,
+
         q,
+
         corrected,
+
         p0=p0,
+
+        sigma=safe_error,
+
+        absolute_sigma=True,
+
         bounds=(
             lower_bounds,
             upper_bounds
         ),
+
         maxfev=200000
     )
 
@@ -216,21 +234,40 @@ def calculate_r_squared(
 
 def calculate_chi_square(
     observed,
-    fitted
+    fitted,
+    error
 ):
 
+    safe_error = np.where(
+        error > 0,
+        error,
+        np.nanmedian(error)
+    )
+
     return np.sum(
-        (observed - fitted) ** 2
+
+        (
+            (observed - fitted)
+
+            /
+
+            safe_error
+
+        ) ** 2
+
     )
 
 def calculate_reduced_chi_square(
     observed,
     fitted,
+    error,
     n_parameters
 ):
 
-    chi2 = np.sum(
-        (observed - fitted) ** 2
+    chi2 = calculate_chi_square(
+        observed,
+        fitted,
+        error
     )
 
     dof = max(

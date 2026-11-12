@@ -239,7 +239,7 @@ def save_peak_components_plot(
 
     plt.close()
 
-    def export_peak_components(
+def export_peak_components(
     q,
     corrected,
     fit_curve,
@@ -277,3 +277,54 @@ def save_peak_components_plot(
         "../output/Peak_Components.xlsx",
         index=False
     )
+
+def export_peak_report(
+    fit_df,
+    r_squared,
+    chi_square,
+    reduced_chi_square
+):
+
+    with pd.ExcelWriter(
+        "../output/Peak_Report.xlsx"
+    ) as writer:
+
+        summary_df = pd.DataFrame({
+
+            "Metric": [
+
+                "R2",
+                "ChiSquare",
+                "ReducedChiSquare"
+
+            ],
+
+            "Value": [
+
+                r_squared,
+                chi_square,
+                reduced_chi_square
+
+            ]
+
+        })
+
+        summary_df.to_excel(
+
+            writer,
+
+            sheet_name="Summary",
+
+            index=False
+
+        )
+
+        fit_df.to_excel(
+
+            writer,
+
+            sheet_name="PeakParameters",
+
+            index=False
+
+        )    

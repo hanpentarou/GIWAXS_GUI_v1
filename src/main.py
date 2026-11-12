@@ -6,6 +6,7 @@ import numpy as np
 
 from peak_fitting import (
     fit_peaks,
+    pseudo_voigt,
     fwhm_pseudo_voigt,
     peak_area,
     calculate_r_squared,
@@ -24,7 +25,8 @@ from export import (
     export_peak_list,
     save_fit_plots,
     save_peak_components_plot,
-    export_peak_components
+    export_peak_components,
+    export_peak_report
 )
 
 from data_loader import load_giwaxs
@@ -56,6 +58,8 @@ def main():
     q = df["Q"].values
 
     raw = df["Intensity"].values
+
+    error = df["Error"].values
 
     print(
         f"Loaded {len(df)} points"
@@ -108,7 +112,8 @@ def main():
     popt, pcov, fit_curve, residual = fit_peaks(
         q,
         corrected,
-        peak_df
+        peak_df,
+        error
     )
 
     fit_results = []
@@ -125,34 +130,69 @@ def main():
 
         eta = popt[i * 4 + 3]
 
+        component = pseudo_voigt(
+            q,
+            amp,
+            center,
+            sigma,
+            eta
+        )
+
+        area_numerical = np.trapezoid(
+            component,
+            q
+        )
+
         fit_results.append({
 
-            "Peak": i + 1,
+        "Peak": i + 1,
 
-            "Q": center,
+        "Q": center,
 
-            "d": 2 * np.pi / center,
+        "d": 2 * np.pi / center,
 
-            "FWHM": fwhm_pseudo_voigt(
-                sigma,
-                eta
-            ),
+        "FWHM": fwhm_pseudo_voigt(
+            sigma,
+            eta
+        ),
 
-            "Area": peak_area(
-                amp,
-                sigma,
-                eta
-            ),
+        "Area_Analytical": peak_area(
+            amp,
+            sigma,
+            eta
+        ),
 
-            "Height": amp,
+        "Area_Numerical": area_numerical,
 
-            "Eta": eta
+        "Height": amp,
 
-        })
+        "Eta": eta
+
+})
 
     fit_df = pd.DataFrame(
     fit_results
 )
+
+    total_area = fit_df[
+        "Area_Numerical"
+    ].sum()
+
+    fit_df[
+        "Area_Percent"
+    ] = (
+
+        fit_df["Area_Numerical"]
+
+        /
+
+        total_area
+
+        *
+
+        100
+
+    )
 
     r_squared = calculate_r_squared(
         corrected,
@@ -161,13 +201,15 @@ def main():
 
     chi_square = calculate_chi_square(
         corrected,
-        fit_curve
+        fit_curve,
+        error
     )
 
     reduced_chi_square = (
         calculate_reduced_chi_square(
             corrected,
             fit_curve,
+            error,
             len(popt)
         )
     )
@@ -192,6 +234,18 @@ def main():
     fit_df.to_excel(
         "../output/Peak_Fit.xlsx",
         index=False
+    )
+
+    export_peak_report(
+
+        fit_df,
+
+        r_squared,
+
+        chi_square,
+
+        reduced_chi_square
+
     )   
 
     fit_curve_df = pd.DataFrame({

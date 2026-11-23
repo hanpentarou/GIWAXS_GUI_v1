@@ -1,6 +1,7 @@
 
 from PIL import Image
 from PIL import ImageTk
+from tkinter import ttk
 
 import os
 
@@ -26,19 +27,46 @@ class GIWAXSGUI:
         self.root = root
 
         self.root.title(
-            "GIWAXS Analyzer"
+            "GIWAXS Analyzer v1.0"
+        )
+
+        self.root.state(
+            "zoomed"
         )
 
         self.root.geometry(
-            "1200x800"
+            "1500x800"
         )
 
         self.filename = ""
 
+        self.left_frame = tk.Frame(
+            self.root
+        )
+
+        self.left_frame.pack(
+            side=tk.LEFT,
+            fill=tk.Y,
+            padx=10,
+            pady=10
+        )
+
+        self.right_frame = tk.Frame(
+            self.root
+        )
+
+        self.right_frame.pack(
+            side=tk.RIGHT,
+            fill=tk.BOTH,
+            expand=True,
+            padx=10,
+            pady=10
+        )
+
         self.create_widgets()
 
         self.result_text = tk.Text(
-            self.root,
+            self.left_frame,
             height=8,
             width=60
         )
@@ -47,19 +75,196 @@ class GIWAXSGUI:
             pady=10
         )
 
-        self.image_label = tk.Label(
-            self.root
+        self.notebook = ttk.Notebook(
+            self.right_frame
         )
 
-        self.image_label.pack(
+        self.notebook.pack(
+            fill=tk.BOTH,
+            expand=True
+        )
+
+        self.fit_tab = tk.Frame(
+            self.notebook
+        )
+
+        self.component_tab = tk.Frame(
+            self.notebook
+        )
+
+        self.residual_tab = tk.Frame(
+            self.notebook
+        )   
+
+        self.area_tab = tk.Frame(
+            self.notebook
+        )
+
+        self.notebook.add(
+            self.fit_tab,
+            text="Peak Fit"
+        )
+
+        self.notebook.add(
+            self.component_tab,
+            text="Components"
+        )
+
+        self.notebook.add(
+            self.residual_tab,
+            text="Residual"
+        )
+
+        self.notebook.add(
+            self.area_tab,
+            text="Area Distribution"
+        )
+
+        self.fit_label = tk.Label(
+            self.fit_tab
+        )
+
+        self.fit_label.pack()
+
+        self.component_label = tk.Label(
+            self.component_tab
+        )
+
+        self.component_label.pack()
+
+        self.residual_label = tk.Label(
+            self.residual_tab
+        )
+
+        self.residual_label.pack()
+
+        self.area_label = tk.Label(
+            self.area_tab
+        )
+
+        self.area_label.pack()              
+
+        self.table = ttk.Treeview(
+
+            self.left_frame,
+
+            columns=(
+                "Peak",
+                "Q",
+                "d",
+                "Area%"
+            ),
+
+            show="headings",
+
+            height=8
+
+        )
+
+        self.table.heading(
+            "Peak",
+            text="Peak"
+        )
+
+        self.table.heading(
+            "Q",
+            text="Q"
+        )
+
+        self.table.heading(
+            "d",
+            text="d"
+        )
+
+        self.table.heading(
+            "Area%",
+            text="Area %"
+        )
+
+        self.table.pack(
             pady=10
         )
+
+        self.table.column(
+            "Peak",
+            width=60,
+            anchor="center"
+        )
+
+        self.table.column(
+            "Q",
+            width=100,
+            anchor="center"
+        )
+
+        self.table.column(
+            "d",
+            width=100,
+            anchor="center"
+        )
+
+        self.table.column(
+            "Area%",
+            width=100,
+            anchor="center"
+        )                      
+
+    def display_plots(self):
+
+        plot_map = {
+
+            "Peak_Fit.png":
+                self.fit_label,
+
+            "Peak_Components.png":
+                self.component_label,
+
+            "Residual.png":
+                self.residual_label,
+
+            "Area_Distribution.png":
+                self.area_label
+
+        }
+
+        for filename, label in plot_map.items():
+
+            try:
+
+                image = Image.open(
+
+                    os.path.join(
+                        "..",
+                        "output",
+                        filename
+                    )
+
+                )
+
+                image.thumbnail(
+                    (800, 500)
+                )
+
+                photo = ImageTk.PhotoImage(
+                    image
+                )
+
+                label.image = photo
+
+                label.config(
+                    image=photo
+                )
+
+            except Exception as e:
+
+                print(e)
+
 
     def create_widgets(self):
 
         tk.Button(
 
-            self.root,
+            self.left_frame,
 
             text="Select Data File",
 
@@ -71,7 +276,7 @@ class GIWAXSGUI:
 
         self.file_label = tk.Label(
 
-            self.root,
+            self.left_frame,
 
             text="No file selected"
 
@@ -81,7 +286,7 @@ class GIWAXSGUI:
 
         tk.Button(
 
-            self.root,
+            self.left_frame,
 
             text="Run Analysis",
 
@@ -93,7 +298,7 @@ class GIWAXSGUI:
 
         tk.Button(
 
-            self.root,
+            self.left_frame,
 
             text="Open Output Folder",
 
@@ -110,7 +315,9 @@ class GIWAXSGUI:
         self.filename = filedialog.askopenfilename()
 
         self.file_label.config(
-            text=self.filename
+            text=os.path.basename(
+                self.filename
+            )
         )
 
     def run_analysis(self):
@@ -152,7 +359,7 @@ class GIWAXSGUI:
 
             )
 
-            self.display_fit_plot()
+            self.display_plots()
 
         except Exception as e:
 
@@ -160,6 +367,34 @@ class GIWAXSGUI:
                 "Analysis Error",
                 str(e)
             )
+
+        for row in self.table.get_children():
+
+            self.table.delete(row)
+
+        for _, row in result[
+            "peak_table"
+        ].iterrows():
+
+            self.table.insert(
+
+                "",
+
+                tk.END,
+
+                values=(
+
+                    int(row["Peak"]),
+
+                    f"{row['Q']:.4f}",
+
+                    f"{row['d']:.3f}",
+
+                    f"{row['Area_Percent']:.2f}"
+
+                )
+
+            )                        
 
     def open_output(self):
 
@@ -200,31 +435,6 @@ class GIWAXSGUI:
                 "Error",
                 str(e)
             )
-
-    def display_fit_plot(self):
-
-        try:
-
-            image = Image.open(
-                "../output/Peak_Fit.png"
-            )
-
-            image.thumbnail(
-                (900, 500)
-            )
-
-            self.photo = ImageTk.PhotoImage(
-                image
-            )
-
-            self.image_label.config(
-                image=self.photo
-            )
-
-        except Exception as e:
-
-            print(e)
-
 
 root = tk.Tk()
 

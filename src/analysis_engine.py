@@ -313,8 +313,16 @@ def run_analysis(filename):
 
         "reduced_chi2": reduced_chi_square,
 
-        "num_peaks": len(fit_df)
+        "num_peaks": len(fit_df),
 
+        "peak_table": fit_df[
+            [
+                "Peak",
+                "Q",
+                "d",
+                "Area_Percent"
+            ]
+        ]
     }
 
 if __name__ == "__main__":

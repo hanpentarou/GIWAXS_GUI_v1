@@ -143,7 +143,8 @@ def save_fit_plots(
 
     plt.savefig(
         "../output/Peak_Fit.png",
-        dpi=300
+        dpi=300,
+        bbox_inches="tight"
     )
 
     plt.close()
@@ -241,7 +242,8 @@ def save_peak_components_plot(
 
     plt.savefig(
         "../output/Peak_Components.png",
-        dpi=300
+        dpi=300,
+        bbox_inches="tight"
     )
 
     plt.close()

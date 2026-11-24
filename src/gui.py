@@ -207,7 +207,7 @@ class GIWAXSGUI:
             "Area%",
             width=100,
             anchor="center"
-        )                      
+        )                   
 
     def display_plots(self):
 
@@ -262,7 +262,97 @@ class GIWAXSGUI:
 
     def create_widgets(self):
 
-        tk.Button(
+        tk.Label(
+            self.left_frame,
+            text="Q min"
+        ).pack()
+
+        self.q_min_var = tk.StringVar(
+            value="0.18"
+        )
+
+        tk.Entry(
+            self.left_frame,
+            textvariable=self.q_min_var,
+            width=10
+        ).pack(
+            pady=5
+        )
+
+        tk.Label(
+            self.left_frame,
+            text="Smooth Scale"
+        ).pack()
+
+        self.smooth_var = tk.StringVar()
+
+        self.smooth_box = ttk.Combobox(
+
+            self.left_frame,
+
+            textvariable=self.smooth_var,
+
+            width=12
+
+        )
+
+        self.smooth_box["values"] = (
+
+            "1e4",
+            "3e4",
+            "5e4",
+            "1e5",
+            "3e5"
+
+        )
+
+        self.smooth_box.set(
+            "5e4"
+        )
+
+        self.smooth_box.pack(
+            pady=5
+        )
+
+        tk.Label(
+            self.left_frame,
+            text="SNIP Window"
+        ).pack()
+
+        self.window_var = tk.StringVar()
+
+        self.window_box = ttk.Combobox(
+
+            self.left_frame,
+
+            textvariable=self.window_var,
+
+            width=10,
+
+            state="readonly"
+
+        )
+
+        self.window_box["values"] = (
+
+            "20",
+            "40",
+            "60",
+            "80",
+            "100"
+
+        )
+
+        self.window_box.set(
+            "40"
+        )
+
+        self.window_box.pack(
+            pady=5
+        )
+
+
+        self.select_button =tk.Button(
 
             self.left_frame,
 
@@ -272,7 +362,11 @@ class GIWAXSGUI:
 
             command=self.select_file
 
-        ).pack(pady=15)
+        )
+
+        self.select_button.pack(
+            pady=15
+        )
 
         self.file_label = tk.Label(
 
@@ -284,7 +378,7 @@ class GIWAXSGUI:
 
         self.file_label.pack()
 
-        tk.Button(
+        self.run_button = tk.Button(
 
             self.left_frame,
 
@@ -294,9 +388,13 @@ class GIWAXSGUI:
 
             command=self.run_analysis
 
-        ).pack(pady=15)
+        )
 
-        tk.Button(
+        self.run_button.pack(
+            pady=15
+        )
+
+        self.open_button = tk.Button(
 
             self.left_frame,
 
@@ -306,7 +404,9 @@ class GIWAXSGUI:
 
             command=self.open_output
 
-        ).pack(
+        )
+
+        self.open_button.pack(
             pady=15
         )
 
@@ -320,6 +420,22 @@ class GIWAXSGUI:
             )
         )
 
+    def update_log(
+        self,
+        message
+    ):
+
+        self.result_text.insert(
+            tk.END,
+            message + "\n"
+        )
+
+        self.result_text.see(
+            tk.END
+        )
+
+        self.root.update()   
+
     def run_analysis(self):
 
         if self.filename == "":
@@ -331,21 +447,56 @@ class GIWAXSGUI:
 
             return
 
+        self.run_button.config(
+            state="disabled"
+        )
+
+        self.result_text.delete(
+            "1.0",
+            tk.END
+        )
+
+        self.result_text.insert(
+            tk.END,
+            "Running analysis...\n"
+        )
+
+        self.root.update()
+
         try:
 
-            result = run_analysis(
-                self.filename
+            q_min = float(
+                self.q_min_var.get()
             )
 
-            self.result_text.delete(
-                "1.0",
-                tk.END
+            smooth_scale = float(
+                self.smooth_var.get()
+            )
+
+            window = int(
+                self.window_var.get()
+            )
+
+            result = run_analysis(
+
+                self.filename,
+
+                q_min=q_min,
+
+                window=window,
+
+                smooth_scale=smooth_scale,
+
+                log_callback=self.update_log
+
             )
 
             self.result_text.insert(
 
                 tk.END,
 
+                "\n\n"
+                "====================\n"
                 "Analysis Summary\n"
                 "====================\n\n"
 
@@ -357,9 +508,45 @@ class GIWAXSGUI:
 
                 f"Reduced Chi² : {result['reduced_chi2']:.2f}\n"
 
+                f"Q min : {q_min}\n"
+
+                f"SNIP Window : {window}\n"
+
+                f"Smooth Scale : {smooth_scale:.0f}\n"
+
             )
 
+            self.root.update()
+
             self.display_plots()
+
+            for row in self.table.get_children():
+
+                self.table.delete(row)
+
+            for _, row in result[
+                "peak_table"
+            ].iterrows():
+
+                self.table.insert(
+
+                    "",
+
+                    tk.END,
+
+                    values=(
+
+                        int(row["Peak"]),
+
+                        f"{row['Q']:.4f}",
+
+                        f"{row['d']:.3f}",
+
+                        f"{row['Area_Percent']:.2f}"
+
+                    )
+
+                )
 
         except Exception as e:
 
@@ -368,32 +555,10 @@ class GIWAXSGUI:
                 str(e)
             )
 
-        for row in self.table.get_children():
+        finally:
 
-            self.table.delete(row)
-
-        for _, row in result[
-            "peak_table"
-        ].iterrows():
-
-            self.table.insert(
-
-                "",
-
-                tk.END,
-
-                values=(
-
-                    int(row["Peak"]),
-
-                    f"{row['Q']:.4f}",
-
-                    f"{row['d']:.3f}",
-
-                    f"{row['Area_Percent']:.2f}"
-
-                )
-
+            self.run_button.config(
+                state="normal"
             )                        
 
     def open_output(self):

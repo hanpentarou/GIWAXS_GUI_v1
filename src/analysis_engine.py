@@ -38,7 +38,21 @@ from export import (
     save_area_distribution_plot
 )
 
-def run_analysis(filename):
+def run_analysis(
+        filename,
+        q_min=0.18,
+        window=40,
+        smooth_scale=5e4,
+        log_callback=None
+    ):
+
+    def log(message):
+
+        print(message)
+
+        if log_callback:
+
+            log_callback(message)
 
     print()
     print(f"Running analysis: {filename}")
@@ -48,7 +62,7 @@ def run_analysis(filename):
     )
 
     df = df[
-        df["Q"] >= 0.18
+        df["Q"] >= q_min
     ].copy()
 
     q = df["Q"].values
@@ -58,10 +72,12 @@ def run_analysis(filename):
     error = df["Error"].values
     bg, corrected = subtract_background(
         q,
-        raw
+        raw,
+        window=window,
+        smooth_scale=smooth_scale
     )
 
-    print(
+    log(
         "Exporting ..."
     )
 
@@ -79,7 +95,7 @@ def run_analysis(filename):
         corrected
     )
 
-    print(
+    log(
         "Detecting peaks ..."
     )
 
@@ -93,7 +109,7 @@ def run_analysis(filename):
     )
 
 
-    print(
+    log(
         "Pseudo-Voigt fitting ..."
     )
 
@@ -258,7 +274,13 @@ def run_analysis(filename):
 
         chi_square,
 
-        reduced_chi_square
+        reduced_chi_square,
+
+        q_min,
+
+        window,
+
+        smooth_scale
 
     )
 
@@ -295,7 +317,7 @@ def run_analysis(filename):
 
     print()
 
-    print(
+    log(
         "Finished."
     )
 

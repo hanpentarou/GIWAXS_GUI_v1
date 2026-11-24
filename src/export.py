@@ -258,13 +258,27 @@ def export_peak_components(
     )
 
 def export_peak_report(
+        
     fit_df,
+
     component_df,
+
     fit_curve_df,
+
     raw_bg_df,
+
     r_squared,
+
     chi_square,
-    reduced_chi_square
+
+    reduced_chi_square,
+
+    q_min,
+
+    window,
+
+    smooth_scale
+
 ):
 
     with pd.ExcelWriter(
@@ -293,17 +307,38 @@ def export_peak_report(
 
             "Metric": [
 
+                "q_min",
+
+                "window",
+
+                "smooth_scale",
+
+                "Peak_Count",
+
                 "R2",
+
                 "ChiSquare",
+
                 "ReducedChiSquare"
+
 
             ],
 
             "Value": [
 
+                q_min,
+
+                window,
+
+                smooth_scale,
+
+                len(fit_df),
+
                 r_squared,
+
                 chi_square,
-                reduced_chi_square
+
+                reduced_chi_square      
 
             ]
 

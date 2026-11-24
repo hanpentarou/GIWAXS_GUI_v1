@@ -24,6 +24,42 @@ class GIWAXSGUI:
         root
     ):
 
+        self.foldername = ""
+
+        def select_folder(self):
+
+            self.foldername = (
+                filedialog.askdirectory()
+            )
+
+        tk.Button(
+
+            self.left_frame,
+
+            text="Select Folder",
+
+            width=30,
+
+            command=self.select_folder
+
+        ).pack(
+            pady=5
+        )
+
+        self.folder_label = tk.Label(
+
+            self.left_frame,
+
+            text="No folder selected"
+
+        )
+
+        self.folder_label.pack()
+
+        self.folder_label.config(
+            text=self.foldername
+        )    
+
         self.root = root
 
         self.root.title(

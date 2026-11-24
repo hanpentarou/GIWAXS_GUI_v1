@@ -13,14 +13,20 @@ def export_background_result(
     q,
     raw,
     bg,
-    corrected
+    corrected,
+    output_dir
 ):
+
+    import os
 
     pd.DataFrame({
         "Q": q,
         "Raw": raw
     }).to_excel(
-        "../output/Raw_Data.xlsx",
+        os.path.join(
+            output_dir,
+            "Raw_Data.xlsx"
+        ),
         index=False
     )
 
@@ -28,7 +34,10 @@ def export_background_result(
         "Q": q,
         "Background": bg
     }).to_excel(
-        "../output/Background.xlsx",
+        os.path.join(
+            output_dir,
+            "Background.xlsx"
+        ),
         index=False
     )
 
@@ -36,23 +45,41 @@ def export_background_result(
         "Q": q,
         "Corrected": corrected
     }).to_excel(
-        "../output/Corrected.xlsx",
+        os.path.join(
+            output_dir,
+            "Corrected.xlsx"
+        ),
         index=False
     )
 
 
-def export_peak_list(peak_df):
+def export_peak_list(
+    peak_df,
+    output_dir
+):
+
+    import os
 
     peak_df.to_excel(
-        "../output/Peak_List.xlsx",
+        os.path.join(
+            output_dir,
+            "Peak_List.xlsx"
+        ),
         index=False
     )
 
+def export_peak_fit(
+    fit_df,
+    output_dir
+):
 
-def export_peak_fit(fit_df):
+    import os
 
     fit_df.to_excel(
-        "../output/Peak_Fit.xlsx",
+        os.path.join(
+            output_dir,
+            "Peak_Fit.xlsx"
+        ),
         index=False
     )
 
@@ -60,8 +87,11 @@ def save_background_plots(
     q,
     raw,
     bg,
-    corrected
+    corrected,
+    output_dir
 ):
+    
+    import os
 
     plt.figure(figsize=(10, 6))
 
@@ -85,7 +115,10 @@ def save_background_plots(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Raw_vs_BG.png",
+        os.path.join(
+            output_dir,
+            "Raw_vs_BG.png"
+        ),
         dpi=300
     )
 
@@ -107,7 +140,10 @@ def save_background_plots(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Corrected.png",
+        os.path.join(
+            output_dir,
+            "Corrected.png"
+        ),
         dpi=300
     )
 
@@ -117,8 +153,11 @@ def save_fit_plots(
     q,
     corrected,
     fit_curve,
-    residual
+    residual,
+    output_dir
 ):
+
+    import os
 
     plt.figure(figsize=(10, 6))
 
@@ -142,7 +181,10 @@ def save_fit_plots(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Peak_Fit.png",
+        os.path.join(
+            output_dir,
+            "Peak_Fit.png"
+        ),
         dpi=300,
         bbox_inches="tight"
     )
@@ -167,7 +209,10 @@ def save_fit_plots(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Residual.png",
+        os.path.join(
+            output_dir,
+            "Residual.png"
+        ),
         dpi=300
     )
 
@@ -178,8 +223,11 @@ def save_peak_components_plot(
     q,
     corrected,
     popt,
-    fit_curve
+    fit_curve,
+    output_dir
 ):
+
+    import os
 
     plt.figure(figsize=(12, 7))
 
@@ -241,7 +289,10 @@ def save_peak_components_plot(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Peak_Components.png",
+        os.path.join(
+            output_dir,
+            "Peak_Components.png"
+        ),
         dpi=300,
         bbox_inches="tight"
     )
@@ -249,11 +300,17 @@ def save_peak_components_plot(
     plt.close()
 
 def export_peak_components(
-    component_df
+    component_df,
+    output_dir
 ):
 
+    import os
+
     component_df.to_excel(
-        "../output/Peak_Components.xlsx",
+        os.path.join(
+            output_dir,
+            "Peak_Components.xlsx"
+        ),
         index=False
     )
 
@@ -277,12 +334,19 @@ def export_peak_report(
 
     window,
 
-    smooth_scale
+    smooth_scale,
+
+    output_dir
 
 ):
 
+    import os
+
     with pd.ExcelWriter(
-        "../output/Peak_Report.xlsx"
+        os.path.join(
+            output_dir,
+            "Peak_Report.xlsx"
+        )
     ) as writer:
 
         component_df.to_excel(
@@ -439,17 +503,26 @@ def make_peak_components_df(
     return component_df
 
 def export_fit_curve_df(
-    fit_curve_df
+    fit_curve_df,
+    output_dir
 ):
 
+    import os
+
     fit_curve_df.to_excel(
-        "../output/Fit_Curve_Residual.xlsx",
+        os.path.join(
+            output_dir,
+            "Fit_Curve_Residual.xlsx"
+        ),
         index=False
     )
 
 def save_area_distribution_plot(
-    fit_df
+    fit_df,
+    output_dir
 ):
+
+    import os
 
     plt.figure(
         figsize=(8, 6)
@@ -476,7 +549,10 @@ def save_area_distribution_plot(
     plt.tight_layout()
 
     plt.savefig(
-        "../output/Area_Distribution.png",
+        os.path.join(
+            output_dir,
+            "Area_Distribution.png"
+        ),
         dpi=300
     )
 

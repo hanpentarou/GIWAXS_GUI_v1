@@ -1,6 +1,7 @@
 
 import pandas as pd
 import numpy as np
+import os
 
 from data_loader import load_giwaxs
 
@@ -43,8 +44,19 @@ def run_analysis(
         q_min=0.18,
         window=40,
         smooth_scale=5e4,
-        log_callback=None
+        log_callback=None,
+        output_dir="../output"
     ):
+
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
+
+    peak_fit_file = os.path.join(
+        output_dir,
+        "Peak_Fit.xlsx"
+    )
 
     def log(message):
 
@@ -85,14 +97,16 @@ def run_analysis(
         q,
         raw,
         bg,
-        corrected
+        corrected,
+        output_dir
     )
 
     save_background_plots(
         q,
         raw,
         bg,
-        corrected
+        corrected,
+        output_dir
     )
 
     log(
@@ -105,7 +119,8 @@ def run_analysis(
     )
 
     export_peak_list(
-        peak_df
+        peak_df,
+        output_dir
     )
 
 
@@ -236,7 +251,8 @@ def run_analysis(
     )
 
     export_peak_fit(
-        fit_df
+        fit_df,
+        output_dir
     )
 
     raw_bg_df = make_raw_background_df(
@@ -280,34 +296,41 @@ def run_analysis(
 
         window,
 
-        smooth_scale
+        smooth_scale,
+
+        output_dir
 
     )
 
     export_fit_curve_df(
-        fit_curve_df
+        fit_curve_df,
+        output_dir
     )
 
     save_fit_plots(
         q,
         corrected,
         fit_curve,
-        residual
+        residual,
+        output_dir
     ) 
 
     save_peak_components_plot(
         q,
         corrected,
         popt,
-        fit_curve
+        fit_curve,
+        output_dir
     )
 
     export_peak_components(
-        component_df
+        component_df,
+        output_dir
     )
 
     save_area_distribution_plot(
-        fit_df
+        fit_df,
+        output_dir
     )
 
     print()
@@ -350,6 +373,7 @@ def run_analysis(
 if __name__ == "__main__":
 
     run_analysis(
-        "../data/2026-08-06_Selenium1_GIWAXS_ICA_0.2_28s_7h_Qz_Q.dat_counts.txt"
+        "../data/2026-08-06_Selenium1_GIWAXS_ICA_0.2_28s_7h_Qz_Q.dat_counts.txt",
+        output_dir="../output/Test_Output"
     )
 

@@ -6,7 +6,8 @@ from tkinter import ttk
 import os
 
 from analysis_engine import (
-    run_analysis
+    run_analysis,
+    run_batch_analysis
 )
 
 import tkinter as tk
@@ -24,46 +25,14 @@ class GIWAXSGUI:
         root
     ):
 
-        self.foldername = ""
+        self.filename = ""
 
-        def select_folder(self):
-
-            self.foldername = (
-                filedialog.askdirectory()
-            )
-
-        tk.Button(
-
-            self.left_frame,
-
-            text="Select Folder",
-
-            width=30,
-
-            command=self.select_folder
-
-        ).pack(
-            pady=5
-        )
-
-        self.folder_label = tk.Label(
-
-            self.left_frame,
-
-            text="No folder selected"
-
-        )
-
-        self.folder_label.pack()
-
-        self.folder_label.config(
-            text=self.foldername
-        )    
+        self.foldername = ""   
 
         self.root = root
 
         self.root.title(
-            "GIWAXS Analyzer v1.0"
+            "GIWAXS Analyzer v1.1"
         )
 
         self.root.state(
@@ -243,7 +212,7 @@ class GIWAXSGUI:
             "Area%",
             width=100,
             anchor="center"
-        )                   
+        )                  
 
     def display_plots(self):
 
@@ -270,8 +239,7 @@ class GIWAXSGUI:
                 image = Image.open(
 
                     os.path.join(
-                        "..",
-                        "output",
+                        self.current_output_dir,
                         filename
                     )
 
@@ -387,6 +355,29 @@ class GIWAXSGUI:
             pady=5
         )
 
+        tk.Button(
+
+            self.left_frame,
+
+            text="Select Folder",
+
+            width=30,
+
+            command=self.select_folder
+
+        ).pack(
+            pady=5
+        )
+
+        self.folder_label = tk.Label(
+
+            self.left_frame,
+
+            text="No folder selected"
+
+        )
+
+        self.folder_label.pack()        
 
         self.select_button =tk.Button(
 
@@ -430,6 +421,22 @@ class GIWAXSGUI:
             pady=15
         )
 
+        self.batch_button = tk.Button(
+
+            self.left_frame,
+
+            text="Run Batch Analysis",
+
+            width=30,
+
+            command=self.run_batch
+
+        )
+
+        self.batch_button.pack(
+            pady=5
+        )
+
         self.open_button = tk.Button(
 
             self.left_frame,
@@ -455,6 +462,22 @@ class GIWAXSGUI:
                 self.filename
             )
         )
+
+    def select_folder(self):
+
+        self.foldername = (
+            filedialog.askdirectory()
+        )
+
+        if self.foldername:
+
+            self.folder_label.config(
+
+                text=os.path.basename(
+                    self.foldername
+                )   
+
+            )
 
     def update_log(
         self,
@@ -511,6 +534,10 @@ class GIWAXSGUI:
 
             window = int(
                 self.window_var.get()
+            )
+
+            self.current_output_dir = (
+                "../output"
             )
 
             result = run_analysis(
@@ -636,6 +663,87 @@ class GIWAXSGUI:
                 "Error",
                 str(e)
             )
+
+    def run_batch(self):
+
+        if self.foldername == "":
+
+            messagebox.showerror(
+                "Error",
+                "Select a folder first"
+            )
+
+            return
+
+        self.batch_button.config(
+            state="disabled"
+        )
+
+        self.result_text.delete(
+            "1.0",
+            tk.END
+        )
+
+        self.result_text.insert(
+            tk.END,
+            "Running batch analysis...\n"
+        )
+
+        self.root.update()
+
+        try:
+
+            q_min = float(
+                self.q_min_var.get()
+            )
+
+            smooth_scale = float(
+                self.smooth_var.get()
+            )
+
+            window = int(
+                self.window_var.get()
+            )
+
+            summary_df = run_batch_analysis(
+
+                self.foldername,
+
+                q_min=q_min,
+
+                window=window,
+
+                smooth_scale=smooth_scale,
+
+                log_callback=self.update_log
+
+            )
+
+            self.result_text.insert(
+
+                tk.END,
+
+                "\n\n"
+                "====================\n"
+                "Batch Summary\n"
+                "====================\n\n"
+
+                f"Files Processed : {len(summary_df)}\n"
+
+            )
+
+        except Exception as e:
+
+            messagebox.showerror(
+                "Batch Error",
+                str(e)
+            )
+
+        finally:
+
+            self.batch_button.config(
+                state="normal"
+            )            
 
 root = tk.Tk()
 

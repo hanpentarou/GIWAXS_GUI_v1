@@ -53,11 +53,6 @@ def run_analysis(
         exist_ok=True
     )
 
-    peak_fit_file = os.path.join(
-        output_dir,
-        "Peak_Fit.xlsx"
-    )
-
     def log(message):
 
         print(message)
@@ -370,10 +365,99 @@ def run_analysis(
         ]
     }
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    run_analysis(
-        "../data/2026-08-06_Selenium1_GIWAXS_ICA_0.2_28s_7h_Qz_Q.dat_counts.txt",
-        output_dir="../output/Test_Output"
+#    run_analysis(
+#        "../data/2026-08-06_Selenium1_GIWAXS_ICA_0.2_28s_7h_Qz_Q.dat_counts.txt",
+#        output_dir="../output/Test_Output"
+#    )
+
+
+import glob
+import os
+
+
+def run_batch_analysis(
+    folder,
+    q_min=0.18,
+    window=40,
+    smooth_scale=5e4,
+    log_callback=None
+):
+
+    txt_files = glob.glob(
+        os.path.join(
+            folder,
+            "*.txt"
+        )
     )
 
+    results = []
+
+    total = len(txt_files)
+
+    for i, filename in enumerate(txt_files):
+
+        sample_name = os.path.splitext(
+            os.path.basename(filename)
+        )[0]
+
+        output_dir = os.path.join(
+            "..",
+            "output",
+            sample_name
+        )
+
+        if log_callback:
+
+            log_callback(
+                f"[{i+1}/{total}] {sample_name}"
+            )
+
+        result = run_analysis(
+
+            filename,
+
+            q_min=q_min,
+
+            window=window,
+
+            smooth_scale=smooth_scale,
+
+            log_callback=log_callback,
+
+            output_dir=output_dir
+
+        )
+
+        results.append({
+
+            "Sample": sample_name,
+
+            "R2": result["r2"],
+
+            "Chi2": result["chi2"],
+
+            "ReducedChi2": result["reduced_chi2"],
+
+            "PeakCount": result["num_peaks"]
+
+        })
+
+    summary_df = pd.DataFrame(
+        results
+    )
+
+    summary_df.to_excel(
+
+        os.path.join(
+            "..",
+            "output",
+            "Batch_Summary.xlsx"
+        ),
+
+        index=False
+
+    )
+
+    return summary_df
